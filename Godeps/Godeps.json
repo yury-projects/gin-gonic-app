@@ -1,11 +1,30 @@
 {
 	"ImportPath": "gin-gonic-app",
-	"GoVersion": "go1.8",
+	"GoVersion": "go1.9",
 	"GodepVersion": "v79",
 	"Deps": [
 		{
+			"ImportPath": "cloud.google.com/go/compute/metadata",
+			"Comment": "v0.12.0-10-g2b74e2e",
+			"Rev": "2b74e2e25316cfd9e46b74e444cdeceb78786dc5"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go",
+			"Comment": "v3.0.0-20-ga539ee1",
+			"Rev": "a539ee1a749a2b895533f979515ac7e6e0f5b650"
+		},
+		{
+			"ImportPath": "github.com/dgrijalva/jwt-go/request",
+			"Comment": "v3.0.0-20-ga539ee1",
+			"Rev": "a539ee1a749a2b895533f979515ac7e6e0f5b650"
+		},
+		{
 			"ImportPath": "github.com/gin-contrib/sse",
 			"Rev": "22d885f9ecc78bf4ee5d72b937e4bbcdc58e8cae"
+		},
+		{
+			"ImportPath": "github.com/gin-gonic/contrib/jwt",
+			"Rev": "0f937ce6d016f44b2f5b1f03787e055977e7c0b8"
 		},
 		{
 			"ImportPath": "github.com/gin-gonic/gin",
@@ -73,6 +92,34 @@
 		{
 			"ImportPath": "github.com/ugorji/go/codec",
 			"Rev": "8c0409fcbb70099c748d71f714529204975f6c3f"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "66aacef3dd8a676686c7ae3716979581e8b03c47"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "66aacef3dd8a676686c7ae3716979581e8b03c47"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "d89af98d7c6bba047c5a2622f36bc14b8766df85"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/google",
+			"Rev": "d89af98d7c6bba047c5a2622f36bc14b8766df85"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/internal",
+			"Rev": "d89af98d7c6bba047c5a2622f36bc14b8766df85"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/jws",
+			"Rev": "d89af98d7c6bba047c5a2622f36bc14b8766df85"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/jwt",
+			"Rev": "d89af98d7c6bba047c5a2622f36bc14b8766df85"
 		},
 		{
 			"ImportPath": "golang.org/x/sys/unix",
