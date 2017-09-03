@@ -278,7 +278,7 @@ func main()  {
 
 	oauth := router.Group("/api/v1/oauth")
 	{
-		oauth.GET("/google", CreateGoogleRedirect)
+		oauth.GET("/google", SignInMiddleware, CreateGoogleRedirect)
 		oauth.GET("/google/authenticated", GoogleAuthenticated)
 	}
 
