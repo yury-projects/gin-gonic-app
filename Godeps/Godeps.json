@@ -9,6 +9,15 @@
 			"Rev": "2b74e2e25316cfd9e46b74e444cdeceb78786dc5"
 		},
 		{
+			"ImportPath": "github.com/PuerkitoBio/goquery",
+			"Comment": "v1.1.0-7-gce645ea",
+			"Rev": "ce645ea5e67a713599b7415f21f0786451fa9554"
+		},
+		{
+			"ImportPath": "github.com/andybalholm/cascadia",
+			"Rev": "349dd0209470eabd9514242c688c403c0926d266"
+		},
+		{
 			"ImportPath": "github.com/dgrijalva/jwt-go",
 			"Comment": "v3.0.0-20-ga539ee1",
 			"Rev": "a539ee1a749a2b895533f979515ac7e6e0f5b650"
@@ -90,6 +99,40 @@
 			"Rev": "fc9e8d8ef48496124e79ae0df75490096eccf6fe"
 		},
 		{
+			"ImportPath": "github.com/mmcdole/gofeed",
+			"Comment": "v1.0.0-beta-24-g6ccd862",
+			"Rev": "6ccd8620e1110c07992bb4d80c11e9bb57670fed"
+		},
+		{
+			"ImportPath": "github.com/mmcdole/gofeed/atom",
+			"Comment": "v1.0.0-beta-24-g6ccd862",
+			"Rev": "6ccd8620e1110c07992bb4d80c11e9bb57670fed"
+		},
+		{
+			"ImportPath": "github.com/mmcdole/gofeed/extensions",
+			"Comment": "v1.0.0-beta-24-g6ccd862",
+			"Rev": "6ccd8620e1110c07992bb4d80c11e9bb57670fed"
+		},
+		{
+			"ImportPath": "github.com/mmcdole/gofeed/internal/shared",
+			"Comment": "v1.0.0-beta-24-g6ccd862",
+			"Rev": "6ccd8620e1110c07992bb4d80c11e9bb57670fed"
+		},
+		{
+			"ImportPath": "github.com/mmcdole/gofeed/rss",
+			"Comment": "v1.0.0-beta-24-g6ccd862",
+			"Rev": "6ccd8620e1110c07992bb4d80c11e9bb57670fed"
+		},
+		{
+			"ImportPath": "github.com/mmcdole/goxpp",
+			"Rev": "77e4a51a73ed99ee3f33c1474dc166866304acbd"
+		},
+		{
+			"ImportPath": "github.com/robfig/cron",
+			"Comment": "v1-58-g736158d",
+			"Rev": "736158dc09e10f1911ca3a1e1b01f11b566ce5db"
+		},
+		{
 			"ImportPath": "github.com/ugorji/go/codec",
 			"Rev": "8c0409fcbb70099c748d71f714529204975f6c3f"
 		},
@@ -99,6 +142,18 @@
 		},
 		{
 			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "66aacef3dd8a676686c7ae3716979581e8b03c47"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html",
+			"Rev": "66aacef3dd8a676686c7ae3716979581e8b03c47"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/atom",
+			"Rev": "66aacef3dd8a676686c7ae3716979581e8b03c47"
+		},
+		{
+			"ImportPath": "golang.org/x/net/html/charset",
 			"Rev": "66aacef3dd8a676686c7ae3716979581e8b03c47"
 		},
 		{
@@ -124,6 +179,66 @@
 		{
 			"ImportPath": "golang.org/x/sys/unix",
 			"Rev": "ab9e364efd8b52800ff7ee48a9ffba4e0ed78dfb"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/charmap",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/htmlindex",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/internal",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/internal/identifier",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/japanese",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/korean",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/simplifiedchinese",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/traditionalchinese",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/encoding/unicode",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/internal/tag",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/internal/utf8internal",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/language",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/runes",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
+		},
+		{
+			"ImportPath": "golang.org/x/text/transform",
+			"Rev": "bd91bbf73e9a4a801adbfb97133c992678533126"
 		},
 		{
 			"ImportPath": "gopkg.in/go-playground/validator.v8",

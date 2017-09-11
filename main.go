@@ -13,31 +13,20 @@ import (
 	jwt_lib "github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/contrib/jwt"
 	"time"
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	"log"
-	"io/ioutil"
-	"bytes"
-	"context"
+	"github.com/robfig/cron"
 )
 
+// It's ok to leave this secret exposed
+const jwt_secret = "JwTsEcReT"
+const cron_rss_feed_check_and_notify = "@every 30m"
+const header_x_auth_token = "X-Auth-Token"
+
 var (
-	// It's ok to leave this secret exposed
-	jwt_secret = "JwTsEcReT"
 	jwt_secret_bytes =  []byte(jwt_secret)
 
 	jwt_oauth_secret = os.Getenv("GIN_GONIC_JWT_OAUTH_SECRET")
 	jwt_oauth_secret_bytes = []byte(jwt_oauth_secret)
 
-	GoogleAuth *oauth2.Config = &oauth2.Config{
-		ClientID:     os.Getenv("GIN_GONIC_GOOGLE_CLIENT_ID"),
-		ClientSecret: os.Getenv("GIN_GONIC_GOOGLE_CLIENT_SECRET"),
-		RedirectURL:  os.Getenv("GIN_GONIC_GOOGLE_REDIRECT_URL"),
-		Scopes: []string{
-			"https://www.googleapis.com/auth/userinfo.email",
-		},
-		Endpoint: google.Endpoint,
-	}
 )
 
 
@@ -48,7 +37,7 @@ func Database() *gorm.DB {
 	db, err := gorm.Open("postgres", os.Getenv("GIN_GONIC_DATABASE_URL"))
 
 	if err != nil {
-		panic("failed to connect database")
+		panic("Failed to connect database")
 	}
 
 	return db
@@ -58,7 +47,7 @@ func SignInMiddleware(c *gin.Context) {
 
 	db := Database()
 
-	token := c.GetHeader("X-Auth-Token")
+	token := c.GetHeader(header_x_auth_token)
 
 	var result Token
 
@@ -170,81 +159,6 @@ func GetPrivate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Hello from private"})
 }
 
-// Let's make these private
-func createOAuthJWT() (string, error)  {
-	// Create the token
-	token := jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), jwt_lib.StandardClaims{
-		Id: "Gin.Gonic.OAuth",
-		ExpiresAt: time.Now().Add(time.Second * 120).Unix(),
-		Issuer: "Gin.Gonic.OAuth",
-	})
-
-	// Sign and get the complete encoded token as a string
-	return token.SignedString(jwt_oauth_secret_bytes)
-}
-
-func validateOAuthJWT(token string) (*jwt_lib.Token, error) {
-	return jwt_lib.Parse(token, func(token *jwt_lib.Token) (interface{}, error) {
-
-		return jwt_oauth_secret_bytes, nil
-	})
-}
-
-func CreateGoogleRedirect(c *gin.Context) {
-
-	state, err := createOAuthJWT()
-
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"message": "Could not generate token"})
-	}
-
-	url := GoogleAuth.AuthCodeURL(state, oauth2.AccessTypeOffline)
-	c.Redirect(http.StatusFound, url)
-}
-
-func GoogleAuthenticated(c *gin.Context) {
-	// Validate state parameter first
-	state := c.Query("state")
-
-	_, jwt_err := validateOAuthJWT(state)
-
-	// If JWT is not valid, abort with Forbidden
-	if jwt_err != nil {
-		log.Println(jwt_err)
-
-		c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "Invalid state, unable to validate JWT token"})
-		return
-	}
-
-	// Otherwise, proceed getting to verifying OAuth response and getting user data
-	code := c.Query("code")
-	tok, err := GoogleAuth.Exchange(context.TODO(), code)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	client := GoogleAuth.Client(context.TODO(), tok)
-	resp, err := client.Get("https://www.googleapis.com/plus/v1/people/me")
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer resp.Body.Close()
-	body, _ := ioutil.ReadAll(resp.Body)
-	log.Println("body", string(body))
-
-	var prettyJSON bytes.Buffer
-	err = json.Indent(&prettyJSON, body, "", "\t")
-	if err != nil {
-		log.Println("JSON parse error: ", err)
-		return
-	}
-
-	c.String(http.StatusOK, string(prettyJSON.Bytes()))
-}
-
 func main()  {
 
 	router := gin.Default()
@@ -252,13 +166,14 @@ func main()  {
 	db := Database()
 	db.AutoMigrate(&Todo{})
 	db.AutoMigrate(&Token{})
+	db.AutoMigrate(&GUID{})
 
 	db.Model(&Token{}).AddIndex("idx_tokens_token", "token")
 
 	v1 := router.Group("/api/v1/todos")
 	{
-		v1.POST("/", CreateTodo)
-		v1.GET("/", FetchAllTodo)
+		v1.POST("", CreateTodo)
+		v1.GET("", FetchAllTodo)
 		//v1.GET("/:id", FetchSingleTodo)
 		//v1.PUT("/:id", UpdateTodo)
 		//v1.DELETE("/:id", DeleteTodo)
@@ -278,9 +193,31 @@ func main()  {
 
 	oauth := router.Group("/api/v1/oauth")
 	{
-		oauth.GET("/google", SignInMiddleware, CreateGoogleRedirect)
+		oauth.GET("/google", CreateGoogleRedirect)
 		oauth.GET("/google/authenticated", GoogleAuthenticated)
+		oauth.GET("/slack/authenticated", SlackAuthenticated)
 	}
+
+	slack := router.Group("/api/v1/slack")
+	{
+		slack.POST("/command", HandleCommand)
+	}
+
+	rss := router.Group("/api/v1/rss")
+	{
+		rss.GET("", GetLatestRssFeed)
+	}
+
+	private_v2 := router.Group("/api/v2/user")
+
+	private_v2.GET("", JWTMiddleware, FetchAllTodo)
+
+	c := cron.New()
+	c.AddFunc(cron_rss_feed_check_and_notify, CheckFeedAndNotify)
+
+	c.Start()
+
+	defer c.Stop()
 
 	router.Run()
 }
