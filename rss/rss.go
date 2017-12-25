@@ -1,23 +1,21 @@
-package main
+package rss
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/mmcdole/gofeed"
 	"fmt"
-	"net/http"
+	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
+	"github.com/mmcdole/gofeed"
+	"net/http"
 )
 
-
 const rss_feed = "https://rss.nytimes.com/services/xml/rss/nyt/Americas.xml"
-
 
 type GUID struct {
 	gorm.Model
 	LastID string
 }
 
-func GetListOfNewGUIDs() []string  {
+func GetListOfNewGUIDs() []string {
 	fp := gofeed.NewParser()
 	feed, _ := fp.ParseURL(rss_feed)
 
