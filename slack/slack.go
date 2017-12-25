@@ -2,27 +2,31 @@ package slack
 
 import (
 	"bytes"
-	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/json"
+	"encoding/json"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/yury-projects/gin-gonic-app/rss"
+	"github.com/yury-projects/gin-gonic-app/weather"
 )
 
-const header_content_type = "application/json"
+const HEADER_CONTENT_TYPE = "application/json"
 
 var (
-	incoming_webhook_url = os.Getenv("GIN_GONIC_WEBHOOK_URL")
+	INCOMING_WEBHOOK_URL = os.Getenv("GIN_GONIC_SLACK_WEBHOOK_URL")
+	VERIFICATION_TOKEN   = os.Getenv("GIN_GONIC_SLACK_VERIFICATION_TOKEN")
 )
 
 func NotifyNewContent(list_of_urls []string) {
 
 	for i := len(list_of_urls) - 1; i >= 0; i-- {
 
-		json_value, _ := json.Marshal(map[string]string{"text": list_of_urls[i]})
+		jsonString, _ := json.Marshal(map[string]string{"text": list_of_urls[i]})
 
 		// For simplicity, will ignore error for the time being
-		_, _ = http.Post(incoming_webhook_url, header_content_type, bytes.NewBuffer(json_value))
+		_, _ = http.Post(INCOMING_WEBHOOK_URL, HEADER_CONTENT_TYPE, bytes.NewBuffer(jsonString))
 	}
 }
 
@@ -30,22 +34,38 @@ func SlackAuthenticated(c *gin.Context) {
 
 }
 
+// AuthenticateCommand - middleware function used to authenticate/verify incoming Slack commands
+func AuthenticateCommand(c *gin.Context) {
+
+	verificationToken := c.PostForm("token")
+
+	if verificationToken != VERIFICATION_TOKEN {
+		c.AbortWithStatusJSON(400, "{\"error\": 400, \"msg\":\"Soemthing is wrong with verification token\"")
+	}
+
+}
+
+// HandleCommand - general handler function for all verified Slack commands
 func HandleCommand(c *gin.Context) {
 
 	text := c.PostForm("text")
 
-	response_string := "Hello from the app"
+	var responseInterface interface{} = "Hello from the app"
 
 	if "rss" == text {
-		guids := GetListOfNewGUIDs()
+		guids := rss.GetListOfNewGUIDs()
 
 		if len(guids) == 0 {
-			response_string = "Nothing new to show here"
+			responseInterface = "Nothing new to show here"
 		} else {
-			response_string = strings.Join(guids, "\n")
+			responseInterface = strings.Join(guids, "\n")
 		}
+	} else if "weather" == text {
+
+		responseInterface = weather.CurrentWeatherFromCity("Toronto")
+
 	}
 
-	c.String(200, response_string)
+	c.JSON(200, responseInterface)
 
 }
