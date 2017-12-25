@@ -2,10 +2,12 @@ package rss
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
 	"github.com/mmcdole/gofeed"
-	"net/http"
+	"github.com/yury-projects/gin-gonic-app/database"
 )
 
 const rss_feed = "https://rss.nytimes.com/services/xml/rss/nyt/Americas.xml"
@@ -21,7 +23,7 @@ func GetListOfNewGUIDs() []string {
 
 	var db_guid GUID
 
-	db := Database()
+	db := database.Database()
 
 	db.First(&db_guid)
 
@@ -57,7 +59,8 @@ func CheckFeedAndNotify() {
 	fmt.Println(guids)
 
 	if len(guids) > 0 {
-		NotifyNewContent(guids)
+		// slack.NotifyNewContent(guids)
+		fmt.Println(guids)
 	}
 }
 
