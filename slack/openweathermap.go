@@ -1,4 +1,4 @@
-package weather
+package slack
 
 import (
 	"encoding/json"
@@ -54,6 +54,10 @@ type CurrentWeatherResponse struct {
 	Main     main      `json:"main"`
 	Wind     wind      `json:"wind"`
 	Datetime int       `json:"dt"`
+}
+
+type WeatherCommand struct {
+	CommandInterface
 }
 
 func makeAPICall() {

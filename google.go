@@ -1,21 +1,22 @@
 package main
 
 import (
-	"golang.org/x/oauth2"
-	"os"
-	jwt_lib "github.com/dgrijalva/jwt-go"
-	"golang.org/x/oauth2/google"
-	"github.com/gin-gonic/gin"
-	"net/http"
-	"log"
-	"io/ioutil"
 	"bytes"
-	"encoding/json"
 	"context"
-	"time"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"math/rand"
+	"net/http"
+	"os"
 	"strings"
+	"time"
+
+	jwt_lib "github.com/dgrijalva/jwt-go"
+	"github.com/gin-gonic/gin"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 const header_authorization = "Authorization"
@@ -34,18 +35,18 @@ var (
 
 type googleResponseEmail struct {
 	Value string `json:"value"`
-	Type string `json:"type"`
+	Type  string `json:"type"`
 }
 
 type googleResponseName struct {
 	FamilyName string `json:"familyName"`
-	GivenName string `json:"givenName"`
+	GivenName  string `json:"givenName"`
 }
 
 type GoogleResponse struct {
-	Id string `json:"id"`
-	Emails []googleResponseEmail `json:"emails"`
-	Name googleResponseName `json:"name"`
+	Id       string                `json:"id"`
+	Emails   []googleResponseEmail `json:"emails"`
+	Name     googleResponseName    `json:"name"`
 	Optional interface{}
 }
 
@@ -55,19 +56,19 @@ type UserClaims struct {
 }
 
 // Let's make these private
-func createOAuthJWT(user *User) (string, error)  {
+func createOAuthJWT(user *User) (string, error) {
 	// Create the token
 	var token *jwt_lib.Token
 
 	if user == nil {
 		token = jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), jwt_lib.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Minute * 2).Unix(),
-			Issuer: "Gin.Gonic.App",
+			Issuer:    "Gin.Gonic.App",
 		})
 	} else {
 		token = jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), UserClaims{*user, jwt_lib.StandardClaims{
 			ExpiresAt: time.Now().Add(time.Hour * 24 * 7).Unix(),
-			Issuer: "Gin.Gonic.App",
+			Issuer:    "Gin.Gonic.App",
 		}})
 	}
 
@@ -147,15 +148,15 @@ func GoogleAuthenticated(c *gin.Context) {
 	var google_response GoogleResponse
 
 	// Defining Anonymous struct to parse the response json
-	var g_r struct{
-		Id string `json:"id"`
-		Emails []struct{
+	var g_r struct {
+		Id     string `json:"id"`
+		Emails []struct {
 			Value string `json:"value"`
-			Type string `json:"type"`
+			Type  string `json:"type"`
 		} `json:"emails"`
 		Name struct {
 			FamilyName string `json:"familyName"`
-			GivenName string `json:"givenName"`
+			GivenName  string `json:"givenName"`
 		} `json:"name"`
 	}
 

@@ -3,10 +3,8 @@ package main
 import (
 	"database/sql/driver"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"os"
-	"strconv"
 	"time"
 
 	jwt_lib "github.com/dgrijalva/jwt-go"
@@ -15,14 +13,16 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/robfig/cron"
 	"github.com/yury-projects/gin-gonic-app/database"
-	"github.com/yury-projects/gin-gonic-app/rss"
 	"github.com/yury-projects/gin-gonic-app/slack"
+	"github.com/yury-projects/gin-gonic-app/todo"
 )
 
 // It's ok to leave this secret exposed
-const jwt_secret = "JwTsEcReT"
-const cron_rss_feed_check_and_notify = "@every 30m"
-const header_x_auth_token = "X-Auth-Token"
+const (
+	jwt_secret                     = "JwTsEcReT"
+	cron_rss_feed_check_and_notify = "@every 30m"
+	header_x_auth_token            = "X-Auth-Token"
+)
 
 var (
 	jwt_secret_bytes = []byte(jwt_secret)
@@ -70,58 +70,8 @@ func (j *JSONB) Scan(value interface{}) error {
 	return nil
 }
 
-type Todo struct {
-	gorm.Model
-	Title     string `json:"title"`
-	Completed int    `json:"completed"`
-}
-
-type TransformedTodo struct {
-	ID        uint   `json:"id"`
-	Title     string `json:"title"`
-	Completed bool   `json:"completed"`
-}
-
-func CreateTodo(c *gin.Context) {
-	completed, _ := strconv.Atoi(c.PostForm("completed"))
-
-	todo := Todo{Title: c.PostForm("title"), Completed: completed}
-
-	db := database.Database()
-	db.Save(&todo)
-
-	c.JSON(http.StatusCreated, gin.H{"status": http.StatusCreated, "message": "Todo item created successfully!", "resourceId": todo.ID})
-}
-
-func FetchAllTodo(c *gin.Context) {
-
-	fmt.Println(c.Get("user"))
-
-	var todos []Todo
-	var _todos []TransformedTodo
-
-	db := database.Database()
-	db.Limit(2).Find(&todos)
-
-	if len(todos) <= 0 {
-
-		c.JSON(http.StatusNotFound, gin.H{"status": http.StatusNotFound, "message": "No todo found!"})
-
-		return
-	}
-
-	// Transforms the todos for building a good response
-	for _, item := range todos {
-
-		completed := item.Completed == 1
-
-		_todos = append(_todos, TransformedTodo{ID: item.ID, Title: item.Title, Completed: completed})
-	}
-
-	c.JSON(http.StatusOK, gin.H{"status": http.StatusOK, "data": _todos})
-}
-
 func CreateJWT(c *gin.Context) {
+
 	// Create the token
 	token := jwt_lib.NewWithClaims(jwt_lib.GetSigningMethod("HS256"), jwt_lib.StandardClaims{
 		Id:        "Hello.World",
@@ -139,8 +89,25 @@ func CreateJWT(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": tokenString})
 }
 
-func GetPrivate(c *gin.Context) {
+func getPrivate(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Hello from private"})
+}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Max-Age", "86400")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE, UPDATE")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Origin, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+		c.Writer.Header().Set("Access-Control-Expose-Headers", "Content-Length")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(200)
+		} else {
+			c.Next()
+		}
+	}
 }
 
 func main() {
@@ -148,22 +115,24 @@ func main() {
 	router := gin.Default()
 
 	db := database.Database()
-	db.AutoMigrate(&Todo{})
+	db.AutoMigrate(&todo.Todo{})
 	db.AutoMigrate(&Token{})
-	db.AutoMigrate(&rss.GUID{})
+	db.AutoMigrate(&slack.GUID{})
 
 	db.Model(&Token{}).AddIndex("idx_tokens_token", "token")
 
-	v1 := router.Group("/api/v1/todos")
-	{
-		v1.POST("", CreateTodo)
-		v1.GET("", FetchAllTodo)
-		//v1.GET("/:id", FetchSingleTodo)
-		//v1.PUT("/:id", UpdateTodo)
-		//v1.DELETE("/:id", DeleteTodo)
-	}
+	router.Use(CORSMiddleware())
 
-	v1.Use(SignInMiddleware)
+	todoV1 := router.Group("/api/v1/todos").Use(jwt.Auth(jwt_secret))
+	{
+		todoV1.POST("", todo.CreateTodo)
+		todoV1.GET("", todo.FetchAllTodo)
+		//todoV1v1.GET("/:id", FetchSingleTodo)
+		todoV1.PUT("/:id", todo.UpdateTodo)
+		todoV1.DELETE("/:id", todo.DeleteTodo)
+		todoV1.POST("/:id/complete", todo.ToggleCompleteness(true))
+		todoV1.POST("/:id/active", todo.ToggleCompleteness(false))
+	}
 
 	public := router.Group("/api/v1/public")
 
@@ -173,7 +142,7 @@ func main() {
 
 	private.Use(jwt.Auth(jwt_secret))
 
-	private.GET("", GetPrivate)
+	private.GET("", getPrivate)
 
 	oauth := router.Group("/api/v1/oauth")
 	{
@@ -189,16 +158,16 @@ func main() {
 
 	rssGroup := router.Group("/api/v1/rss")
 	{
-		rssGroup.GET("", rss.GetLatestRssFeed)
+		rssGroup.GET("", slack.GetLatestRssFeed)
 	}
 
 	privateV2 := router.Group("/api/v2/user")
 	{
-		privateV2.GET("", JWTMiddleware, FetchAllTodo)
+		privateV2.GET("", JWTMiddleware, todo.FetchAllTodo)
 	}
 
 	c := cron.New()
-	c.AddFunc(cron_rss_feed_check_and_notify, rss.CheckFeedAndNotify)
+	c.AddFunc(cron_rss_feed_check_and_notify, slack.CheckFeedAndNotify)
 
 	c.Start()
 
